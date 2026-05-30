@@ -40,7 +40,54 @@ A powerful web-based SSH client that runs directly in your browser, providing a 
 
 ## Installation
 
-### Option 1: Using npm (Recommended)
+### Option 0: Docker (Easiest - Recommended for Deployment)
+
+The fastest way to get started with Online Web SSH using Docker:
+
+#### Development Setup (All-in-One)
+
+```bash
+# Clone the repository
+git clone https://github.com/BaseMax/online-web-ssh.git
+cd online-web-ssh
+
+# Start with Docker Compose
+docker-compose up
+
+# Access the application
+# Frontend: http://localhost:8080
+# Backend: ws://localhost:8000
+```
+
+Stop with `Ctrl+C`
+
+#### Production Setup (with HTTPS)
+
+```bash
+# Generate SSL certificate (or use existing)
+mkdir -p certs
+openssl req -x509 -newkey rsa:4096 -keyout certs/key.pem -out certs/cert.pem -days 365 -nodes
+
+# Start production environment
+docker-compose -f docker-compose.prod.yml up -d
+
+# Access: https://localhost
+```
+
+View logs:
+```bash
+docker-compose logs -f
+docker-compose logs backend
+```
+
+Stop:
+```bash
+docker-compose down
+```
+
+**See [DOCKER.md](DOCKER.md) for detailed Docker documentation and advanced configurations.**
+
+### Option 1: Using npm (Recommended for Development)
 
 ```bash
 # Clone the repository
@@ -119,51 +166,118 @@ The application automatically saves your connection details (except passwords an
 3. If your key is passphrase-protected, enter the passphrase in the "Passphrase" field
 4. Click Connect
 
-## Server Setup
+## Backend Server Setup
 
-This is a **client-side application**. It requires a WebSocket-to-SSH bridge server to function. Here are some options:
+This is a **client-side application** (frontend). It requires a **WebSocket-to-SSH bridge server** (backend) to function.
 
-### Option 1: Use an Existing WebSSH Server
+### Quick Backend Setup
 
-- **WebSSH** (Python): https://github.com/huashengyu/webssh
-- **GoSSH** (Go): https://github.com/golang-ssh/webssh
-- **CloudShell**: Various cloud providers offer built-in web terminals
+**Included in this repository**: We provide a complete Python/asyncio WebSocket SSH bridge.
 
-### Option 2: Build Your Own Backend
+#### Option 1: Docker (Recommended)
 
-Create a WebSocket server that:
-1. Accepts WebSocket connections
-2. Proxies traffic to SSH servers via SSH.NET, paramiko, or similar libraries
-3. Sends terminal output back through WebSocket
-4. Handles authentication and session management
+```bash
+# Automatically started with docker-compose
+docker-compose up
 
-Example flow:
+# Backend runs on ws://localhost:8000
 ```
-Browser → WebSocket → Backend Server → SSH Server
-         (encrypted)              (SSH protocol)
+
+#### Option 2: Manual Setup
+
+```bash
+cd server
+pip install -r requirements.txt
+python webssh-server.py
+
+# Backend runs on ws://localhost:8000
 ```
+
+### Alternative Backends
+
+If you prefer different technologies:
+
+- **WebSSH** (Python/Tornado): https://github.com/huashengyu/webssh
+- **GateOne** (Python): Advanced terminal emulator and SSH client
+- **Guacamole** (Java): Remote desktop gateway
+- **CloudShell**: Various cloud providers offer built-in terminals
+
+### Backend Architecture
+
+```
+┌──────────────────────────────────────────────┐
+│         Web Browser (Frontend)               │
+│         - HTML/CSS/JavaScript                │
+│         - XTerm.js Terminal                  │
+│         - WebSocket Client                   │
+└─────────────────┬──────────────────────────┘
+                  │
+          WebSocket Connection
+          (Encrypted, ws:// or wss://)
+                  │
+┌─────────────────▼──────────────────────────┐
+│    Backend Server (Required)                │
+│    - WebSocket Handler                      │
+│    - SSH Client Library (paramiko)          │
+│    - PTY Management                         │
+│    - Session Lifecycle                      │
+└─────────────────┬──────────────────────────┘
+                  │
+          SSH Protocol (Port 22)
+                  │
+┌─────────────────▼──────────────────────────┐
+│      Remote SSH Server                      │
+│      - Linux/Unix/Windows System            │
+│      - User Authentication                  │
+│      - Shell Environment                    │
+└──────────────────────────────────────────────┘
+```
+
+### Backend Documentation
+
+See [server/README.md](server/README.md) for:
+- Detailed setup instructions
+- Configuration options
+- Security considerations
+- API documentation
+- Troubleshooting guide
 
 ## Project Structure
 
 ```
 online-web-ssh/
-├── index.html                 # Main HTML file
+├── index.html                      # Main HTML file
+├── Dockerfile                      # Frontend Docker image
+├── docker-compose.yml              # Development Docker setup
+├── docker-compose.prod.yml         # Production Docker setup
+├── nginx.conf                      # Nginx reverse proxy config
+├── package.json                    # NPM configuration
+├── README.md                       # Main documentation
+├── QUICKSTART.md                   # Quick start guide
+├── CONTRIBUTING.md                # Contribution guidelines
+├── DOCKER.md                       # Docker documentation
+├── LICENSE                         # MIT License
+├── .gitignore                      # Git ignore file
+├── scripts/
+│   └── download-libs.js            # Library downloader script
 ├── static/
 │   ├── css/
-│   │   ├── style.css         # Custom styles
-│   │   ├── bootstrap.min.css # Bootstrap framework
-│   │   └── xterm.min.css     # Terminal emulator CSS
+│   │   ├── style.css              # Custom styles
+│   │   ├── bootstrap.min.css      # Bootstrap framework
+│   │   └── xterm.min.css          # Terminal emulator CSS
 │   ├── js/
-│   │   ├── script.js         # Main application logic
-│   │   ├── jquery.min.js     # jQuery library
-│   │   ├── bootstrap.bundle.min.js
-│   │   ├── xterm.min.js      # Terminal emulator
-│   │   └── xterm-addon-fit.min.js
-│   ├── fonts/                # Custom fonts (if needed)
-│   └── img/                  # Images and icons
-├── README.md                 # This file
-├── LICENSE                   # MIT License
-└── package.json             # NPM configuration (optional)
+│   │   ├── script.js              # Main application logic
+│   │   ├── jquery.min.js          # jQuery library
+│   │   ├── bootstrap.bundle.min.js # Bootstrap JS
+│   │   ├── xterm.min.js           # Terminal emulator
+│   │   └── xterm-addon-fit.min.js # Terminal fit addon
+│   ├── fonts/                      # Custom fonts directory
+│   └── img/                        # Images and icons directory
+└── server/
+    ├── webssh-server.py           # Backend WebSocket SSH bridge
+    ├── Dockerfile                 # Backend Docker image
+    ├── requirements.txt           # Python dependencies
+    └── README.md                  # Server documentation
 ```
 
 ## Configuration

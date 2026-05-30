@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  # WebSSH Backend - WebSocket SSH Bridge
+  backend:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: webssh-backend
+    hostname: webssh-backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Configure as needed
+      - LOG_LEVEL=INFO
+      - PYTHONUNBUFFERED=1
+    volumes:
+      # Optional: Mount SSH keys (read-only)
+      - ~/.ssh:/home/webssh/.ssh:ro
+    networks:
+      - webssh-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 8000), timeout=2)"]
+      interval: 30s
+      timeout: 10s
+      start_period: 5s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    depends_on:
+      - frontend
+    labels:
+      - "com.webssh.description=WebSSH Backend Server"
+      - "com.webssh.version=1.0.0"
+
+  # WebSSH Frontend - Web Interface
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: webssh-frontend
+    hostname: webssh-frontend
+    ports:
+      - "8080:8080"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8080
+      # Backend connection URL (from browser perspective)
+      - BACKEND_URL=ws://localhost:8000
+    networks:
+      - webssh-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      start_period: 5s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "com.webssh.description=WebSSH Frontend"
+      - "com.webssh.version=1.0.0"
+
+networks:
+  webssh-network:
+    driver: bridge
+    name: webssh-network
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+
+# Volume for persistent data (optional)
+volumes:
+  ssh-keys:
+    driver: local

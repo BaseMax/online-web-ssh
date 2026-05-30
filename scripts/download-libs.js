@@ -15,23 +15,31 @@ const libs = [
     dest: 'static/js/bootstrap.bundle.min.js',
     name: 'Bootstrap Bundle'
   },
+
+  // XTerm core
   {
-    url: 'https://cdnjs.cloudflare.com/ajax/libs/xterm/5.2.1/xterm.min.js',
+    url: 'https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js',
     dest: 'static/js/xterm.min.js',
     name: 'XTerm.js'
   },
+
+  // Fit addon
   {
-    url: 'https://cdnjs.cloudflare.com/ajax/libs/xterm/5.2.1/addons/fit/xterm-addon-fit.min.js',
+    url: 'https://cdn.jsdelivr.net/npm/xterm-addon-fit/lib/xterm-addon-fit.js',
     dest: 'static/js/xterm-addon-fit.min.js',
     name: 'XTerm Fit Addon'
   },
+
+  // Bootstrap CSS
   {
     url: 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
     dest: 'static/css/bootstrap.min.css',
     name: 'Bootstrap CSS'
   },
+
+  // XTerm CSS
   {
-    url: 'https://cdnjs.cloudflare.com/ajax/libs/xterm/5.2.1/xterm.min.css',
+    url: 'https://cdn.jsdelivr.net/npm/xterm/css/xterm.css',
     dest: 'static/css/xterm.min.css',
     name: 'XTerm CSS'
   }
@@ -42,7 +50,6 @@ function downloadFile(url, dest, name) {
     const destPath = path.join(__dirname, '..', dest);
     const destDir = path.dirname(destPath);
 
-    // Ensure directory exists
     if (!fs.existsSync(destDir)) {
       fs.mkdirSync(destDir, { recursive: true });
     }

@@ -239,7 +239,6 @@ class SSHWebSocketServer:
 
 
 def main():
-    """Main entry point"""
     server = SSHWebSocketServer(host='localhost', port=8000)
 
     try:
