@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Web SSH</title>
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="static/css/bootstrap.min.css">
+  <!-- XTerm CSS -->
+  <link rel="stylesheet" href="static/css/xterm.min.css">
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+  <nav class="navbar navbar-dark bg-dark">
+    <div class="container-fluid">
+      <span class="navbar-brand mb-0 h1">
+        <i class="bi bi-terminal"></i> Online Web SSH
+      </span>
+    </div>
+  </nav>
+
+  <!-- Connection Waiter -->
+  <div id="waiter" class="loading-overlay" style="display: none;">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Connecting...</span>
+    </div>
+    <p class="mt-3">Connecting to server...</p>
+  </div>
+
+  <!-- Connection Form -->
+  <div class="container-fluid form-container" style="display: none;">
+    <div class="row mt-4">
+      <div class="col-md-8 offset-md-2">
+        <div class="card">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">SSH Connection Settings</h5>
+          </div>
+          <div class="card-body">
+            <form id="connect" method="post" enctype="multipart/form-data">
+              <!-- Hostname and Port -->
+              <div class="row mb-3">
+                <div class="col-md-8">
+                  <label for="hostname" class="form-label">Hostname / IP Address <span class="text-danger">*</span></label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="hostname"
+                    name="hostname"
+                    placeholder="192.168.1.1 or example.com"
+                    required>
+                </div>
+                <div class="col-md-4">
+                  <label for="port" class="form-label">Port <span class="text-danger">*</span></label>
+                  <input
+                    type="number"
+                    class="form-control"
+                    id="port"
+                    name="port"
+                    placeholder="22"
+                    value="22"
+                    min="1"
+                    max="65535"
+                    required>
+                </div>
+              </div>
+
+              <!-- Username and Password -->
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="username"
+                    name="username"
+                    placeholder="root or admin"
+                    required>
+                </div>
+                <div class="col-md-6">
+                  <label for="password" class="form-label">Password</label>
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="password"
+                    name="password"
+                    placeholder="Enter password">
+                </div>
+              </div>
+
+              <!-- Private Key -->
+              <div class="mb-3">
+                <label for="privatekey" class="form-label">Private Key (PEM format)</label>
+                <input
+                  type="file"
+                  class="form-control"
+                  id="privatekey"
+                  name="privatekey"
+                  accept=".pem,.key">
+                <small class="text-muted">Upload your SSH private key file (optional)</small>
+              </div>
+
+              <!-- Passphrase -->
+              <div class="mb-3">
+                <label for="passphrase" class="form-label">Passphrase (for encrypted key)</label>
+                <input
+                  type="password"
+                  class="form-control"
+                  id="passphrase"
+                  name="passphrase"
+                  placeholder="Leave empty if key is not encrypted">
+              </div>
+
+              <!-- TOTP / 2FA -->
+              <div class="mb-3">
+                <label for="totp" class="form-label">TOTP / 2FA Code</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="totp"
+                  name="totp"
+                  placeholder="6-digit code (if required)">
+              </div>
+
+              <!-- Terminal Type -->
+              <div class="mb-3">
+                <label for="term" class="form-label">Terminal Type</label>
+                <select class="form-select" id="term" name="term">
+                  <option value="xterm-256color" selected>xterm-256color</option>
+                  <option value="xterm">xterm</option>
+                  <option value="linux">linux</option>
+                  <option value="vt100">vt100</option>
+                  <option value="vt220">vt220</option>
+                </select>
+              </div>
+
+              <!-- Connection Options -->
+              <details class="mb-3">
+                <summary class="cursor-pointer">Advanced Options</summary>
+                <div class="mt-3">
+                  <div class="mb-3">
+                    <label for="fontsize" class="form-label">Font Size (pixels)</label>
+                    <input
+                      type="number"
+                      class="form-control"
+                      id="fontsize"
+                      name="fontsize"
+                      placeholder="14"
+                      min="8"
+                      max="48"
+                      value="14">
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6 mb-3">
+                      <label for="fontcolor" class="form-label">Font Color</label>
+                      <div class="input-group">
+                        <input
+                          type="color"
+                          class="form-control form-control-color"
+                          id="fontcolor"
+                          name="fontcolor"
+                          value="#ffffff"
+                          title="Choose font color">
+                        <input
+                          type="text"
+                          class="form-control"
+                          placeholder="#ffffff"
+                          id="fontcolor-text">
+                      </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                      <label for="bgcolor" class="form-label">Background Color</label>
+                      <div class="input-group">
+                        <input
+                          type="color"
+                          class="form-control form-control-color"
+                          id="bgcolor"
+                          name="bgcolor"
+                          value="#000000"
+                          title="Choose background color">
+                        <input
+                          type="text"
+                          class="form-control"
+                          placeholder="#000000"
+                          id="bgcolor-text">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label for="title" class="form-label">Window Title</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="title"
+                      name="title"
+                      placeholder="Custom window title">
+                  </div>
+                  <div class="mb-3">
+                    <label for="command" class="form-label">Auto-execute Command</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="command"
+                      name="command"
+                      placeholder="Command to run after connection">
+                  </div>
+                </div>
+              </details>
+
+              <!-- CSRF Token (backend will provide) -->
+              <input type="hidden" id="_xsrf" name="_xsrf" value="">
+
+              <!-- Form Buttons -->
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
+                  <i class="bi bi-arrow-right-circle"></i> Connect
+                </button>
+                <button type="reset" class="btn btn-outline-danger">
+                  <i class="bi bi-arrow-counterclockwise"></i> Reset
+                </button>
+              </div>
+            </form>
+
+            <!-- Status Messages -->
+            <div id="status" class="alert alert-info mt-3" style="display: none;" role="alert"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Terminal Container -->
+  <div class="container-fluid terminal-container">
+    <div id="terminal" class="xterm-container"></div>
+    <div id="status" class="status-bar"></div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="static/js/jquery.min.js"></script>
+  <script src="static/js/bootstrap.bundle.min.js"></script>
+  <script src="static/js/xterm.min.js"></script>
+  <script src="static/js/xterm-addon-fit.min.js"></script>
+  <script src="static/js/script.js"></script>
+
+  <noscript>
+    <div class="alert alert-danger mt-3">
+      <strong>JavaScript is disabled!</strong> This application requires JavaScript to be enabled.
+    </div>
+  </noscript>
+</body>
+</html>

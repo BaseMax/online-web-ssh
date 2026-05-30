@@ -1,0 +1,42 @@
+{
+  "name": "online-web-ssh",
+  "version": "1.0.0",
+  "description": "A powerful web-based SSH client that runs directly in your browser",
+  "main": "index.html",
+  "scripts": {
+    "start": "http-server -p 8080 -o",
+    "dev": "http-server -p 8080 -c-1",
+    "download-libs": "node scripts/download-libs.js",
+    "build": "echo 'Build completed'",
+    "test": "echo 'No tests configured'"
+  },
+  "keywords": [
+    "ssh",
+    "web",
+    "terminal",
+    "xterm",
+    "websocket",
+    "client",
+    "remote",
+    "shell"
+  ],
+  "author": "Seyyed Ali Mohammadiyeh (MAX BASE) <maxbasecode@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BaseMax/online-web-ssh.git"
+  },
+  "homepage": "https://github.com/BaseMax/online-web-ssh",
+  "bugs": {
+    "url": "https://github.com/BaseMax/online-web-ssh/issues"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.0",
+    "jquery": "^3.6.0",
+    "xterm": "^5.2.1",
+    "xterm-addon-fit": "^0.8.0"
+  }
+}
